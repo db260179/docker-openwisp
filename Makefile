@@ -8,7 +8,7 @@ SHELL := /bin/bash
 default: compose-build
 
 USER = registry.gitlab.com/openwisp/docker-openwisp
-TAG = edge
+TAG = 24.11.2
 SKIP_PULL ?= false
 SKIP_BUILD ?= false
 SKIP_TESTS ?= false
