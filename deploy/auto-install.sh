@@ -129,6 +129,12 @@ setup_docker_openwisp() {
 		# SSL Configuration
 		echo -ne ${GRN}"(5/5) Enter letsencrypt email (leave blank for self-signed certificate): "${NON}
 		read letsencrypt_email
+
+		# Ask for Cloudflare API Token only if Let's Encrypt is enabled
+		if [[ -n "$letsencrypt_email" ]]; then
+			echo -ne ${GRN}"Enter Cloudflare API token (optional, required for DNS challenge): "${NON}
+			read cloudflare_api_token
+		fi
 	else
 		cp $env_path $ENV_USER &>>$LOG_FILE
 	fi
@@ -174,6 +180,10 @@ setup_docker_openwisp() {
 			set_env "SSL_CERT_MODE" "SelfSigned"
 		else
 			set_env "SSL_CERT_MODE" "Yes"
+		fi
+		# Set Cloudflare token if provided
+		if [[ -n "$cloudflare_api_token" ]]; then
+			set_env "CLOUDFLARE_API_TOKEN" "$cloudflare_api_token"
 		fi
 		# Other
 		hostname=$(echo "$django_default_email" | cut -d @ -f 2)

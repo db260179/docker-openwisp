@@ -29,17 +29,57 @@ function start_uwsgi {
 }
 
 function create_prod_certs {
-	if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
-		certbot certonly --standalone --noninteractive --agree-tos \
-			--rsa-key-size 4096 \
-			--domain ${DASHBOARD_DOMAIN} \
-			--email ${CERT_ADMIN_EMAIL}
-	fi
-	if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
-		certbot certonly --standalone --noninteractive --agree-tos \
-			--rsa-key-size 4096 \
-			--domain ${API_DOMAIN} \
-			--email ${CERT_ADMIN_EMAIL}
+	if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+		echo "Using DNS-01 challenge via Cloudflare..."
+
+		if [ ! -f /etc/nginx/cloudflare.ini ]; then
+			cat <<EOF >/etc/nginx/cloudflare.ini
+dns_cloudflare_api_token = ${CLOUDFLARE_API_TOKEN}
+EOF
+		fi
+
+		if [ -f /etc/nginx/cloudflare.ini ]; then
+			chmod 600 /etc/nginx/cloudflare.ini
+        fi
+
+        if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
+			certbot certonly --dns-cloudflare \
+				--dns-cloudflare-credentials /etc/nginx/cloudflare.ini \
+				--dns-cloudflare-propagation-seconds 60 \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${DASHBOARD_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
+			certbot certonly --dns-cloudflare \
+				--dns-cloudflare-credentials /etc/nginx/cloudflare.ini \
+				--dns-cloudflare-propagation-seconds 60 \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${API_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+    else
+		echo "Using HTTP-01 challenge via standalone mode..."
+
+		if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
+			certbot certonly --standalone \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${DASHBOARD_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
+			certbot certonly --standalone \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${API_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
 	fi
 }
 
