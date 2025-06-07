@@ -9,6 +9,12 @@ x-celery-depends-on: &celery-depends-on
     openvpn:
       condition: service_healthy
 
+x-ulimits: &default-ulimits
+  ulimits:
+    nofile:
+      soft: 65536
+      hard: 65536
+
 services:
   dashboard:
     image: openwisp/openwisp-dashboard:latest
@@ -20,6 +26,7 @@ services:
         DASHBOARD_APP_PORT: 8000
     env_file:
       - .env
+    <<: *default-ulimits
     volumes:
       - openwisp_static:/opt/openwisp/static
       - openwisp_media:/opt/openwisp/media
@@ -43,6 +50,7 @@ services:
         API_APP_PORT: 8001
     env_file:
       - .env
+    <<: *default-ulimits
     volumes:
       - influxdb_data:/var/lib/influxdb
       - openwisp_media:/opt/openwisp/media
@@ -63,6 +71,7 @@ services:
         WEBSOCKET_APP_PORT: 8002
     env_file:
       - .env
+    <<: *default-ulimits
     volumes:
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     depends_on:
@@ -78,9 +87,9 @@ services:
       - openwisp_private_storage:/opt/openwisp/private
       - openwisp_ssh:/home/openwisp/.ssh
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+    <<: [ *default-ulimits, *celery-depends-on ]
     env_file:
       - .env
-    <<: *celery-depends-on
     network_mode: "service:openvpn"
 
   celery_monitoring:
@@ -92,9 +101,9 @@ services:
       - openwisp_media:/opt/openwisp/media
       - openwisp_private_storage:/opt/openwisp/private
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+    <<: [ *default-ulimits, *celery-depends-on ]
     env_file:
       - .env
-    <<: *celery-depends-on
     network_mode: "service:openvpn"
 
   celerybeat:
@@ -102,6 +111,7 @@ services:
     restart: always
     environment:
       - MODULE_NAME=celerybeat
+    <<: *default-ulimits
     env_file:
       - .env
     volumes:
@@ -117,6 +127,7 @@ services:
     build:
       context: images
       dockerfile: openwisp_nginx/Dockerfile
+    <<: *default-ulimits
     env_file:
       - .env
     volumes:
@@ -144,6 +155,7 @@ services:
     build:
       context: images
       dockerfile: openwisp_freeradius/Dockerfile
+    <<: *default-ulimits
     env_file:
       - .env
     ports:
@@ -160,6 +172,7 @@ services:
     build:
       context: images
       dockerfile: openwisp_postfix/Dockerfile
+    <<: *default-ulimits
     env_file:
       - .env
     volumes:
@@ -173,6 +186,7 @@ services:
       dockerfile: openwisp_openvpn/Dockerfile
     ports:
       - "1194:1194/udp"
+    <<: *default-ulimits
     env_file:
       - .env
     depends_on:
@@ -196,6 +210,7 @@ services:
       - POSTGRES_USER=$DB_USER
       - POSTGRES_PASSWORD=$DB_PASS
       - TZ=$TZ
+    <<: *default-ulimits
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -206,12 +221,14 @@ services:
       - INFLUXDB_DB=$INFLUXDB_NAME
       - INFLUXDB_USER=$INFLUXDB_USER
       - INFLUXDB_USER_PASSWORD=$INFLUXDB_PASS
+    <<: *default-ulimits
     volumes:
       - influxdb_data:/var/lib/influxdb
 
   redis:
     image: redis:alpine
     restart: always
+    <<: *default-ulimits
     volumes:
       - redis_data:/data
 
