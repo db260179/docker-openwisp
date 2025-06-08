@@ -123,11 +123,14 @@ setup_docker_openwisp() {
 		# VPN domain
 		echo -ne ${GRN}"(3/5) Enter OpenVPN domain (blank for vpn.${domain}, N to disable module): "${NON}
 		read vpn_domain
+		# Server domain
+		echo -ne ${GRN}"(4/5) Enter Server domain (blank for server.${domain}): "${NON}
+		read server_domain
 		# Site manager email
-		echo -ne ${GRN}"(4/5) Site manager email: "${NON}
+		echo -ne ${GRN}"(5/6) Site manager email: "${NON}
 		read django_default_email
 		# SSL Configuration
-		echo -ne ${GRN}"(5/5) Enter letsencrypt email (leave blank for self-signed certificate): "${NON}
+		echo -ne ${GRN}"(6/6) Enter letsencrypt email (leave blank for self-signed certificate): "${NON}
 		read letsencrypt_email
 
 		# Ask for Cloudflare API Token only if Let's Encrypt is enabled
@@ -168,6 +171,12 @@ setup_docker_openwisp() {
 			set_env "VPN_DOMAIN" "example.com"
 		else
 			set_env "VPN_DOMAIN" "$vpn_domain"
+		fi
+		# Server Domain
+		if [[ -z "$server_domain" ]]; then
+			set_env "SERVER_DOMAIN" "server.${domain}"
+		else
+			set_env "SERVER_DOMAIN" "$server_domain"
 		fi
 		# Site manager email
 		set_env "EMAIL_DJANGO_DEFAULT" "$django_default_email"
