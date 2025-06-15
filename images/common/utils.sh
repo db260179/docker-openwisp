@@ -29,24 +29,67 @@ function start_uwsgi {
 }
 
 function create_prod_certs {
-	if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
-		certbot certonly --standalone --noninteractive --agree-tos \
-			--rsa-key-size 4096 \
-			--domain ${DASHBOARD_DOMAIN} \
-			--email ${CERT_ADMIN_EMAIL}
-	fi
-	if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
-		certbot certonly --standalone --noninteractive --agree-tos \
-			--rsa-key-size 4096 \
-			--domain ${API_DOMAIN} \
-			--email ${CERT_ADMIN_EMAIL}
+	if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+		echo "Using DNS-01 challenge via Cloudflare..."
+
+		if [ ! -f /etc/nginx/cloudflare.ini ]; then
+			cat <<EOF >/etc/nginx/cloudflare.ini
+dns_cloudflare_api_token = ${CLOUDFLARE_API_TOKEN}
+EOF
+		fi
+
+		if [ -f /etc/nginx/cloudflare.ini ]; then
+			chmod 600 /etc/nginx/cloudflare.ini
+        fi
+
+        if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
+			certbot certonly --dns-cloudflare \
+				--dns-cloudflare-credentials /etc/nginx/cloudflare.ini \
+				--dns-cloudflare-propagation-seconds 60 \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${DASHBOARD_DOMAIN} \
+				--domain ${SERVER_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
+			certbot certonly --dns-cloudflare \
+				--dns-cloudflare-credentials /etc/nginx/cloudflare.ini \
+				--dns-cloudflare-propagation-seconds 60 \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${API_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+    else
+		echo "Using HTTP-01 challenge via standalone mode..."
+
+		if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
+			certbot certonly --standalone \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${DASHBOARD_DOMAIN} \
+				--domain ${SERVER_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
+
+		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
+			certbot certonly --standalone \
+				--non-interactive --agree-tos \
+				--rsa-key-size 4096 \
+				--domain ${API_DOMAIN} \
+				--email ${CERT_ADMIN_EMAIL}
+		fi
 	fi
 }
 
 function create_dev_certs {
 	# Ensure required directories exist
-	mkdir -p /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/
-	mkdir -p /etc/letsencrypt/live/${API_DOMAIN}/
+	mkdir -p "/etc/letsencrypt/live/${DASHBOARD_DOMAIN}/" \
+			"/etc/letsencrypt/live/${API_DOMAIN}/"
+
 	# Create self-signed certificates
 	if [ ! -f /etc/letsencrypt/live/${DASHBOARD_DOMAIN}/privkey.pem ]; then
 		openssl req -x509 -newkey rsa:4096 \
@@ -113,6 +156,13 @@ function envsubst_create_config {
 		eval export APP_SERVICE=\$${application}_APP_SERVICE
 		eval export APP_PORT=\$${application}_APP_PORT
 		eval export DOMAIN=\$${application}_${3}
+		# Conditionally build the server_name list for Nginx
+		local current_server_name="$DOMAIN"
+		if [ "$application" = "DASHBOARD" ]; then
+			current_server_name="$DOMAIN ${SERVER_DOMAIN}"
+		fi
+		export NGINX_SERVER_NAME="$current_server_name" # Export this variable for the template
+		
 		eval export ROOT_DOMAIN=$(python3 get_domain.py)
 		application=$(echo "$application" | tr "[:upper:]" "[:lower:]")
 		envsubst <${1} >/etc/nginx/conf.d/${application}.${2}.conf
