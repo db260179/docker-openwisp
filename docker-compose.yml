@@ -28,7 +28,7 @@ services:
       - .env
     <<: *default-ulimits
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "1024M"
     volumes:
       - openwisp_static:/opt/openwisp/static
       - openwisp_media:/opt/openwisp/media
@@ -54,7 +54,7 @@ services:
       - .env
     <<: *default-ulimits
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "1024M"
     volumes:
       - influxdb_data:/var/lib/influxdb
       - openwisp_media:/opt/openwisp/media
@@ -95,7 +95,7 @@ services:
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     network_mode: "service:openvpn"
@@ -111,7 +111,7 @@ services:
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     network_mode: "service:openvpn"
@@ -123,7 +123,7 @@ services:
       - MODULE_NAME=celerybeat
     <<: *default-ulimits
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     volumes:
@@ -245,7 +245,7 @@ services:
       - INFLUXDB_USER_PASSWORD=$INFLUXDB_PASS
     <<: *default-ulimits
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     volumes:
       - influxdb_data:/var/lib/influxdb
 
@@ -254,7 +254,7 @@ services:
     restart: always
     <<: *default-ulimits
     cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "1024M"
     volumes:
       - redis_data:/data
 
