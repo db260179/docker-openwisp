@@ -313,7 +313,7 @@ init_setup() {
 		echo -e ${GRN}"Welcome to OpenWISP auto-installation script."
 		echo -e "Please ensure following requirements:"
 		echo -e "  - Fresh instance"
-		echo -e "  - 2GB RAM (Minimum)"
+		echo -e "  - 8GB RAM (Minimum)"
 		echo -e "  - Supported systems"
 		echo -e "    - Debian: 11 & 12"
 		echo -e "    - Ubuntu 22.04 & 24.04"
@@ -383,7 +383,7 @@ init_help() {
 
 	echo -e "Please ensure following requirements:"
 	echo -e "  - Fresh instance"
-	echo -e "  - 2GB RAM (Minimum)"
+	echo -e "  - 8GB RAM (Minimum)"
 	echo -e "  - Supported systems"
 	echo -e "    - Debian: 11 & 12"
 	echo -e "    - Ubuntu 22.04 & 24.04"
