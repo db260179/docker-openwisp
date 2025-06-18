@@ -33,6 +33,12 @@ services:
         WEBSOCKET_APP_PORT: 8002
     depends_on:
       - dashboard
+  celery:
+    image: openwisp-dashboard:latest
+  celery_monitoring:
+    image: openwisp-dashboard:latest
+  celerybeat:
+    image: openwisp-dashboard:latest
   freeradius:
     image: openwisp-freeradius:latest
     build:
