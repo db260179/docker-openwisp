@@ -2,6 +2,7 @@
 
 export DEBIAN_FRONTEND=noninteractive
 export BASE_PATH=$HOME/openwisp
+export BACKUPS_PATH=$HOME/openwisp/backups/postgres
 export INSTALL_PATH=$HOME/openwisp/docker-openwisp
 export LOG_FILE=$HOME/autoinstall.log
 export ENV_USER=$HOME/config.env
@@ -148,6 +149,11 @@ setup_docker_openwisp() {
 	cd $INSTALL_PATH &>>$LOG_FILE
 	check_status $? "docker-openwisp download failed."
 	echo $openwisp_version >$INSTALL_PATH/VERSION
+
+	# Create backup folder if it does not exist
+	if [[ ! -d "$BACKUPS_PATH" ]]; then
+		mkdir -p "$BACKUPS_PATH"
+	fi
 
 	if [[ ! -f "$env_path" ]]; then
 		# Dashboard Domain
