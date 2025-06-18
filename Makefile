@@ -81,12 +81,11 @@ clean:
 
 # Production
 start:
-	if [ "$(SKIP_PULL)" == "false" ]; then \
-		make pull; \
-	fi
-	printf '\e[1;34m%-6s\e[m\n' "Starting Services..."
+	# We build images first
+	make compose-build
+	printf '\e[1;34m%-6s\e[m\n' "Building images then starting Services..."
 	docker --log-level WARNING compose up -d
-	printf '\e[1;32m%-6s\e[m\n' "Success: OpenWISP should be available at your dashboard domain in 2 minutes."
+	printf '\e[1;32m%-6s\e[m\n' "Success: OpenWISP should be available at your dashboard domain in 5 minutes."
 
 stop:
 	printf '\e[1;31m%-6s\e[m\n' "Stopping OpenWISP services..."
