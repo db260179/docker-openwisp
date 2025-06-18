@@ -32,14 +32,14 @@ base-build:
 	for build_arg in $$BUILD_ARGS_FILE; do \
 	    BUILD_ARGS+=" --build-arg $$build_arg"; \
 	done; \
-	docker build --tag openwisp/openwisp-base:intermedia-system \
+	docker build --tag openwisp-base:intermedia-system \
 	             --file ./images/openwisp_base/Dockerfile \
 	             --target SYSTEM ./images/; \
-	docker build --tag openwisp/openwisp-base:intermedia-python \
+	docker build --tag openwisp-base:intermedia-python \
 	             --file ./images/openwisp_base/Dockerfile \
 	             --target PYTHON ./images/ \
 	             $$BUILD_ARGS; \
-	docker build --tag openwisp/openwisp-base:latest \
+	docker build --tag openwisp-base:latest \
 	             --file ./images/openwisp_base/Dockerfile ./images/ \
 	             $$BUILD_ARGS
 
@@ -72,9 +72,9 @@ clean:
 	docker compose stop &> /dev/null
 	docker compose down --remove-orphans --volumes --rmi all &> /dev/null
 	docker compose rm -svf &> /dev/null
-	docker rmi --force openwisp/openwisp-base:latest \
-				openwisp/openwisp-base:intermedia-system \
-				openwisp/openwisp-base:intermedia-python \
+	docker rmi --force openwisp-base:latest \
+				openwisp-base:intermedia-system \
+				openwisp-base:intermedia-python \
 				openwisp/openwisp-nfs:latest \
 				`docker images -f "dangling=true" -q` \
 				`docker images | grep openwisp/docker-openwisp | tr -s ' ' | cut -d ' ' -f 3` &> /dev/null
@@ -83,9 +83,9 @@ clean:
 start:
 	# We build images first
 	make compose-build
-	printf '\e[1;34m%-6s\e[m\n' "Building images then starting Services..."
+	printf '\e[1;34m%-6s\e[m\n' "Building images then starting Services...please wait.."
 	docker --log-level WARNING compose up -d
-	printf '\e[1;32m%-6s\e[m\n' "Success: OpenWISP should be available at your dashboard domain in 5 minutes."
+	printf '\e[1;32m%-6s\e[m\n' "Success: OpenWISP should be available at your dashboard domain in 2 minutes."
 
 stop:
 	printf '\e[1;31m%-6s\e[m\n' "Stopping OpenWISP services..."
