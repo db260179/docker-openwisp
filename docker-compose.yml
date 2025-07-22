@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "1024M"
     volumes:
       - openwisp_static:/opt/openwisp/static
@@ -53,7 +53,7 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "1024M"
     volumes:
       - influxdb_data:/var/lib/influxdb
@@ -76,7 +76,7 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "512M"
     volumes:
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
@@ -94,7 +94,6 @@ services:
       - openwisp_ssh:/home/openwisp/.ssh
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "3.5"
     mem_limit: "2048M"
     env_file:
       - .env
@@ -110,7 +109,6 @@ services:
       - openwisp_private_storage:/opt/openwisp/private
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "3.5"
     mem_limit: "2048M"
     env_file:
       - .env
@@ -122,7 +120,6 @@ services:
     environment:
       - MODULE_NAME=celerybeat
     <<: *default-ulimits
-    cpus: "2.5"
     mem_limit: "2048M"
     env_file:
       - .env
@@ -231,7 +228,6 @@ services:
       - POSTGRES_PASSWORD=$DB_PASS
       - TZ=$TZ
     <<: *default-ulimits
-    cpus: "3.5"
     mem_limit: "2048M"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -250,7 +246,6 @@ services:
       - INFLUXDB_USER=$INFLUXDB_USER
       - INFLUXDB_USER_PASSWORD=$INFLUXDB_PASS
     <<: *default-ulimits
-    cpus: "2.5"
     mem_limit: "2048M"
     volumes:
       - influxdb_data:/var/lib/influxdb
@@ -259,7 +254,6 @@ services:
     image: redis:alpine
     restart: always
     <<: *default-ulimits
-    cpus: "2.5"
     mem_limit: "1024M"
     volumes:
       - redis_data:/data
