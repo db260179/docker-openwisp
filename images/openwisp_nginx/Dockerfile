@@ -1,10 +1,10 @@
 FROM nginx:1.27.2-alpine
 
 RUN apk add --update --no-cache \
-            openssl~=3.3.2-r1 \
-            py3-pip~=24.0-r2 \
-            certbot~=2.10.0-r1 \
-            certbot-nginx~=2.10.0-r1 && \
+            openssl \
+            py3-pip \
+            certbot \
+            certbot-nginx && \
     rm -rf /var/cache/apk/* /tmp/*
 
 WORKDIR /etc/nginx/

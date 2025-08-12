@@ -27,8 +27,8 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
-    mem_limit: "512M"
+    cpus: "3.5"
+    mem_limit: "1024M"
     volumes:
       - openwisp_static:/opt/openwisp/static
       - openwisp_media:/opt/openwisp/media
@@ -53,8 +53,8 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
-    mem_limit: "512M"
+    cpus: "3.5"
+    mem_limit: "1024M"
     volumes:
       - influxdb_data:/var/lib/influxdb
       - openwisp_media:/opt/openwisp/media
@@ -76,7 +76,7 @@ services:
     env_file:
       - .env
     <<: *default-ulimits
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "512M"
     volumes:
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
@@ -94,8 +94,7 @@ services:
       - openwisp_ssh:/home/openwisp/.ssh
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     network_mode: "service:openvpn"
@@ -110,8 +109,7 @@ services:
       - openwisp_private_storage:/opt/openwisp/private
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     network_mode: "service:openvpn"
@@ -122,8 +120,7 @@ services:
     environment:
       - MODULE_NAME=celerybeat
     <<: *default-ulimits
-    cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     env_file:
       - .env
     volumes:
@@ -231,10 +228,15 @@ services:
       - POSTGRES_PASSWORD=$DB_PASS
       - TZ=$TZ
     <<: *default-ulimits
-    cpus: "2.5"
     mem_limit: "2048M"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Add a healthcheck to ensure the DB is ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   influxdb:
     image: influxdb:1.8-alpine
@@ -244,8 +246,7 @@ services:
       - INFLUXDB_USER=$INFLUXDB_USER
       - INFLUXDB_USER_PASSWORD=$INFLUXDB_PASS
     <<: *default-ulimits
-    cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "2048M"
     volumes:
       - influxdb_data:/var/lib/influxdb
 
@@ -253,8 +254,7 @@ services:
     image: redis:alpine
     restart: always
     <<: *default-ulimits
-    cpus: "2.5"
-    mem_limit: "512M"
+    mem_limit: "1024M"
     volumes:
       - redis_data:/data
 

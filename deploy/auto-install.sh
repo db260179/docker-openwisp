@@ -1,7 +1,12 @@
 #!/bin/bash
 
+if [ "${DEBUG}" = "true" ]; then
+  set -x
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 export BASE_PATH=$HOME/openwisp
+export BACKUPS_PATH=$HOME/openwisp/backups/postgres
 export INSTALL_PATH=$HOME/openwisp/docker-openwisp
 export LOG_FILE=$HOME/autoinstall.log
 export ENV_USER=$HOME/config.env
@@ -69,11 +74,8 @@ dnf_dependenices_setup() {
 }
 
 get_version_from_user() {
-	echo -ne ${GRN}"OpenWISP Version (leave blank for latest): "${NON}
+	echo -ne ${GRN}"OpenWISP Version (enter git repo branch): "${NON}
 	read openwisp_version
-	if [[ -z "$openwisp_version" ]]; then
-		openwisp_version=$(curl -L --silent https://api.github.com/repos/openwisp/docker-openwisp/releases/latest | jq -r .tag_name)
-	fi
 }
 
 setup_docker() {
@@ -121,7 +123,7 @@ setup_docker_openwisp() {
 		echo -ne ${GRN}"(2/5) Enter API domain (blank for api.${domain}): "${NON}
 		read api_domain
 		# VPN domain
-		echo -ne ${GRN}"(3/5) Enter OpenVPN domain (blank for vpn.${domain}, N to disable module): "${NON}
+		echo -ne ${GRN}"(3/5) Enter OpenVPN domain (blank for openvpn.${domain}, N to disable module): "${NON}
 		read vpn_domain
 		# Server domain
 		echo -ne ${GRN}"(4/5) Enter Server domain (blank for server.${domain}): "${NON}
@@ -149,6 +151,11 @@ setup_docker_openwisp() {
 	check_status $? "docker-openwisp download failed."
 	echo $openwisp_version >$INSTALL_PATH/VERSION
 
+	# Create backup folder if it does not exist
+	if [[ ! -d "$BACKUPS_PATH" ]]; then
+		mkdir -p "$BACKUPS_PATH"
+	fi
+
 	if [[ ! -f "$env_path" ]]; then
 		# Dashboard Domain
 		set_env "DASHBOARD_DOMAIN" "$dashboard_domain"
@@ -166,7 +173,7 @@ setup_docker_openwisp() {
 		fi
 		# VPN domain
 		if [[ -z "$vpn_domain" ]]; then
-			set_env "VPN_DOMAIN" "vpn.${domain}"
+			set_env "VPN_DOMAIN" "openvpn.${domain}"
 		elif [[ "${vpn_domain,,}" == "n" ]]; then
 			set_env "VPN_DOMAIN" "example.com"
 		else
@@ -240,12 +247,12 @@ give_information_to_user() {
 
 	echo -e ${GRN}"\nYour setup is ready, your dashboard should be available on https://${dashboard_domain} in 2 minutes.\n"
 	echo -e "You can login on the dashboard with"
-	echo -e "    username: admin"
-	echo -e "    password: admin"
+	echo -e "    username: admin"
+	echo -e "    password: admin"
 	echo -e "Please remember to change these credentials.\n"
 	echo -e "Random database user and password generate by the script:"
-	echo -e "    username: ${db_user}"
-	echo -e "    password: ${db_pass}"
+	echo -e "    username: ${db_user}"
+	echo -e "    password: ${db_pass}"
 	echo -e "Please note them, might be helpful for accessing postgresql data in future.\n"${NON}
 }
 
@@ -306,12 +313,12 @@ init_setup() {
 	else
 		echo -e ${GRN}"Welcome to OpenWISP auto-installation script."
 		echo -e "Please ensure following requirements:"
-		echo -e "  - Fresh instance"
-		echo -e "  - 2GB RAM (Minimum)"
-		echo -e "  - Supported systems"
-		echo -e "    - Debian: 10 & 11"
-		echo -e "    - Ubuntu 18.04, 18.10, 20.04 & 22.04"
-		echo -e "    - Rocky Linux: 8 & 9"
+		echo -e "  - Fresh instance"
+		echo -e "  - 8GB RAM (Minimum)"
+		echo -e "  - Supported systems"
+		echo -e "    - Debian: 11 & 12"
+		echo -e "    - Ubuntu 22.04 & 24.04"
+		echo -e "    - Rocky Linux: 8 & 9"
 		echo -e ${YLW}"\nYou can use -u\--upgrade if you are upgrading from an older version.\n"${NON}
 	fi
 
@@ -376,15 +383,15 @@ init_help() {
 	echo -e ${GRN}"Welcome to OpenWISP auto-installation script.\n"
 
 	echo -e "Please ensure following requirements:"
-	echo -e "  - Fresh instance"
-	echo -e "  - 2GB RAM (Minimum)"
-	echo -e "  - Supported systems"
-	echo -e "    - Debian: 10 & 11"
-	echo -e "    - Ubuntu 18.04, 18.10, 20.04, 22.04"
-	echo -e "    - Rocky Linux: 8 & 9"
-	echo -e "  -i\--install : (default) Install OpenWISP"
-	echo -e "  -u\--upgrade : Change OpenWISP version already setup with this script"
-	echo -e "  -h\--help    : See this help message"
+	echo -e "  - Fresh instance"
+	echo -e "  - 8GB RAM (Minimum)"
+	echo -e "  - Supported systems"
+	echo -e "    - Debian: 11 & 12"
+	echo -e "    - Ubuntu 22.04 & 24.04"
+	echo -e "    - Rocky Linux: 8 & 9\n"
+	echo -e "  -i\--install : (default) Install OpenWISP"
+	echo -e "  -u\--upgrade : Change OpenWISP version already setup with this script"
+	echo -e "  -h\--help    : See this help message"
 	echo -e ${NON}
 }
 
