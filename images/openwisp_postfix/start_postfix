@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+. /opt/openwisp/utils.sh
+
+postfix start
+
+rsyslogd -n
+

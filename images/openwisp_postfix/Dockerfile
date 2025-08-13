@@ -8,6 +8,7 @@ RUN apk add --no-cache --upgrade \
     apk add --no-cache \
             postfix \
             rsyslog \
+            supervisor \
             tzdata && \
     rm -rf /tmp/* /var/cache/apk/*
 
@@ -15,9 +16,14 @@ CMD ["sh", "init_command.sh"]
 EXPOSE 25
 
 COPY ./openwisp_postfix/rsyslog.conf /etc/rsyslog.conf
-COPY ./common/init_command.sh \
+COPY ./openwisp_postfix/start_postfix \
+    ./common/init_command.sh \
     ./common/utils.sh \
     /opt/openwisp/
+
+# Supervisord
+RUN mkdir -p /etc/supervisor/conf.d
+COPY ./common/supervisord.conf /etc/supervisor/
 
 ENV MODULE_NAME=postfix \
     TZ=UTC \

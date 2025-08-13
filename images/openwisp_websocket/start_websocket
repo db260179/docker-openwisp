@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+. /opt/openwisp/utils.sh
+
+/usr/local/bin/daphne -b ${DJANGO_WEBSOCKET_HOST} -p ${CONTAINER_PORT} --proxy-headers openwisp.asgi:application --access-log -

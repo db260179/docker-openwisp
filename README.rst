@@ -29,3 +29,9 @@ Documentation
 - `Usage documentation <https://openwisp.io/docs/stable/docker/>`_
 - `Developer documentation
   <https://openwisp.io/docs/stable/docker/developer/instructions.html>`_
+
+Quick start install using auto-install-script
+---------------------------------------------
+
+- `Quick start install script
+  <https://openwisp.io/docs/stable/docker/user/quickstart.html#auto-install-script>`_

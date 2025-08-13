@@ -1,9 +1,9 @@
 # Find documentation in README.md under
 # the heading "Makefile Options".
 
-OPENWISP_VERSION = 24.11.1
+OPENWISP_VERSION = stable-home
 SHELL := /bin/bash
-.SILENT: clean pull start stop
+.SILENT: clean clean-vol pull start stop
 
 default: compose-build
 
@@ -68,9 +68,9 @@ develop: compose-build
 
 # Clean
 clean:
-	printf '\e[1;34m%-6s\e[m\n' "Removing docker-openwisp..."
+	printf '\e[1;34m%-6s\e[m\n' "Removing docker-openwisp containers and images only..."
 	docker compose stop &> /dev/null
-	docker compose down --remove-orphans --volumes --rmi all &> /dev/null
+	docker compose down --remove-orphans --rmi all &> /dev/null
 	docker compose rm -svf &> /dev/null
 	docker rmi --force openwisp-base:latest \
 				openwisp-base:intermedia-system \
@@ -78,6 +78,10 @@ clean:
 				openwisp/openwisp-nfs:latest \
 				`docker images -f "dangling=true" -q` \
 				`docker images | grep openwisp/docker-openwisp | tr -s ' ' | cut -d ' ' -f 3` &> /dev/null
+
+clean-vol:
+	printf '\e[1;34m%-6s\e[m\n' "Removing docker-openwisp containers and volumes only..."
+	docker compose down --remove-orphans --volumes --rmi all &> /dev/null
 
 # Production
 start:
