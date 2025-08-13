@@ -12,6 +12,7 @@ export LOG_FILE=$HOME/autoinstall.log
 export ENV_USER=$HOME/config.env
 export ENV_BACKUP=$HOME/backup.env
 export GIT_PATH=${GIT_PATH:-https://github.com/db260179/docker-openwisp.git}
+export openwisp_version=stable-home # Git repo branch version
 
 # Terminal colors
 export RED='\033[1;31m'
@@ -73,11 +74,6 @@ dnf_dependenices_setup() {
 	check_status $? "Python dependencies installation failed (DNF)."
 }
 
-get_version_from_user() {
-	echo -ne ${GRN}"OpenWISP Version (enter git repo branch): "${NON}
-	read openwisp_version
-}
-
 setup_docker() {
 	start_step "Setting up docker..."
 	docker info &>/dev/null
@@ -92,26 +88,19 @@ setup_docker() {
 }
 
 download_docker_openwisp() {
-	local openwisp_version="$1"
 	start_step "Downloading docker-openwisp..."
 	if [[ -f $INSTALL_PATH/.env ]]; then
 		mv $INSTALL_PATH/.env $ENV_BACKUP &>>$LOG_FILE
 		rm -rf $INSTALL_PATH &>>$LOG_FILE
 	fi
-	if [ -z "$GIT_BRANCH" ]; then
-		if [[ "$openwisp_version" == "edge" ]]; then
-			GIT_BRANCH="master"
-		else
-			GIT_BRANCH="$openwisp_version"
-		fi
-	fi
+		# GIT code from branch version
+		GIT_BRANCH="$openwisp_version"
 
 	git clone $GIT_PATH $INSTALL_PATH --depth 1 --branch $GIT_BRANCH &>>$LOG_FILE
 }
 
 setup_docker_openwisp() {
 	echo -e ${GRN}"\nOpenWISP Configuration:"${NON}
-	get_version_from_user
 	echo -ne ${GRN}"Do you have .env file? Enter filepath (leave blank for ad-hoc configuration): "${NON}
 	read env_path
 	if [[ ! -f "$env_path" ]]; then
@@ -219,7 +208,6 @@ setup_docker_openwisp() {
 
 upgrade_docker_openwisp() {
 	echo -e ${GRN}"\nOpenWISP Configuration:"${NON}
-	get_version_from_user
 	echo ""
 
 	download_docker_openwisp "$openwisp_version"
