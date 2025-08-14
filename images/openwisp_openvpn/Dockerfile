@@ -2,9 +2,9 @@
 FROM kylemanna/openvpn:2.4
 
 RUN apk add --no-cache \
-            curl~=7.79.1-r1 \
-            tzdata~=2022a-r0 \
-            supervisor~=4.2.0-r0 && \
+            curl \
+            tzdata \
+            supervisor && \
     rm -rf /var/cache/apk/* /tmp/*
 CMD ["sh", "init_command.sh"]
 EXPOSE 1194
@@ -26,7 +26,12 @@ ENV MODULE_NAME=openvpn \
     DB_OPTIONS={} \
     TOPLOGY_UPDATE_INTERVAL=3
 
+# Supervisord
+RUN mkdir -p /etc/supervisor/conf.d
+COPY ./common/supervisord.conf /etc/supervisor/
+
 # hadolint ignore=DL3045
 COPY ./common/init_command.sh \
     ./common/utils.sh \
     ./openwisp_openvpn/ ./
+

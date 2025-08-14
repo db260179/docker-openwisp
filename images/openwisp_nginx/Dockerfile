@@ -3,6 +3,7 @@ FROM nginx:1.27.5-alpine
 RUN apk add --update --no-cache \
             openssl \
             py3-pip \
+            supervisor \
             certbot \
             certbot-nginx && \
     rm -rf /var/cache/apk/* /tmp/*
@@ -17,6 +18,10 @@ COPY ./common/services.py \
     ./common/utils.sh \
     ./openwisp_nginx/ \
     /etc/nginx/
+
+# Supervisord
+RUN mkdir -p /etc/supervisor/conf.d
+COPY ./common/supervisord.conf /etc/supervisor/
 
 RUN pip install --break-system-packages --no-cache-dir -r requirements.txt
 

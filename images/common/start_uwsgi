@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+. /opt/openwisp/utils.sh
+
+init_conf
+
+start_uwsgi

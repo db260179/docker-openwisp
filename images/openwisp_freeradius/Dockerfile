@@ -1,8 +1,9 @@
 FROM freeradius/freeradius-server:3.2.7-alpine
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache --update tzdata~=2024b-r1 \
-                                postgresql17-client~=17.5-r0 && \
+RUN apk add --no-cache --update tzdata \
+                                supervisor \
+                                postgresql17-client && \
     rm -rf /var/cache/apk/* /tmp/*
 
 RUN addgroup -S freerad && \
@@ -14,6 +15,12 @@ EXPOSE 1812/udp 1813/udp
 # hadolint ignore=DL3045
 COPY ./common/init_command.sh \
     ./common/utils.sh ./
+
+    # Supervisord
+RUN mkdir -p /etc/supervisor/conf.d && \
+    chown -R freerad:root /etc/supervisor
+COPY --chown=freerad:root ./common/supervisord.conf /etc/supervisor/
+
 COPY ./openwisp_freeradius/raddb/ /etc/raddb/
 RUN chown -R freerad:root /opt/etc/raddb/ && \
     chown -R freerad:root /opt/var/log/
