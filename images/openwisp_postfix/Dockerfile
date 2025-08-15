@@ -16,7 +16,8 @@ CMD ["sh", "init_command.sh"]
 EXPOSE 25
 
 COPY ./openwisp_postfix/rsyslog.conf /etc/rsyslog.conf
-COPY ./common/init_command.sh \
+COPY ./openwisp_postfix/start_postfix \
+    ./common/init_command.sh \
     ./common/utils.sh \
     /opt/openwisp/
 

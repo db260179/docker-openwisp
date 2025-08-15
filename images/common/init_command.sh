@@ -42,8 +42,7 @@ case "$MODULE_NAME" in
 
     postfix)
         postfix_config
-        create_program_conf "postfix" postfix start
-        create_program_conf "rsyslog" rsyslogd -n
+        create_program_conf "postfix" /opt/openwisp/start_postfix
         ;;
 
     freeradius)
