@@ -27,24 +27,6 @@ stderr_logfile_maxbytes=0
 EOF
 }
 
-create_web_program_conf() {
-    name="$1"
-    shift
-    cat > "$SUPERVISOR_DIR/$name.conf" <<EOF
-[program:$name]
-user=openwisp
-directory=/opt/openwisp/
-command=$@
-autorestart=true
-stdout_logfile=/proc/self/fd/1
-stderr_logfile=/proc/self/fd/1
-# Set logfile maxbytes to 0 to
-# avoid invalid seek error
-stdout_logfile_maxbytes=0
-stderr_logfile_maxbytes=0
-EOF
-}
-
 case "$MODULE_NAME" in
     dashboard)
         if [ "$OPENWISP_GEOCODING_CHECK" = 'True' ]; then
@@ -142,7 +124,7 @@ case "$MODULE_NAME" in
         ;;
 
 	websocket)
-        create_web_program_conf "websocket" "/usr/local/bin/daphne -b %%(ENV_DJANGO_WEBSOCKET_HOST)s -p %%(ENV_CONTAINER_PORT)s --proxy-headers openwisp.asgi:application --access-log -"
+        create_program_conf "websocket" gosu openwisp /opt/openwisp/openwisp/start_websocket
         ;;
 
     *)

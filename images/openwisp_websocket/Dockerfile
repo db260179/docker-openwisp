@@ -6,7 +6,7 @@ WORKDIR /opt/openwisp/
 COPY --chown=openwisp:root  ./common/ \
     /opt/openwisp/
 COPY --chown=openwisp:root  ./openwisp_websocket/module_settings.py \
-    ./openwisp_websocket/urls.py \
+    ./openwisp_websocket/urls.py ./openwisp_websocket/start_websocket \
     /opt/openwisp/openwisp/
 
 ARG WEBSOCKET_APP_PORT=8002
