@@ -80,6 +80,14 @@ notification_schedule = {
     },
 }
 
+wifi_cleanup_schedule = {
+    "delete_wifi_clients_and_sessions": {
+        "task": "openwisp_monitoring.device.tasks.delete_wifi_clients_and_sessions",
+        "schedule": timedelta(days=1),
+        "args": (30,),
+    },
+}
+
 if not os.environ.get("USE_OPENWISP_CELERY_TASK_ROUTES_DEFAULTS", True):
     task_routes = {}
 
@@ -93,6 +101,7 @@ app = Celery(
         **notification_schedule,
         **monitoring_schedule,
         **metric_collection_schedule,
+        **wifi_cleanup_schedule,
     },
 )
 app.config_from_object("django.conf:settings", namespace="CELERY")
