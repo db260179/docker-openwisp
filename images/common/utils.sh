@@ -109,8 +109,8 @@ function nginx_dev {
 	envsubst_create_config /etc/nginx/openwisp.ssl.template.conf https DOMAIN
 	ssl_http_behaviour
 	create_dev_certs
-	CMD="source /etc/nginx/utils.sh && create_dev_certs && nginx -s reload"
-	echo "0 3 1 1 * $CMD &>> /etc/nginx/log/crontab.log" | crontab -
+	CMD="source /etc/nginx/utils.sh && create_dev_certs && supervisorctl reload"
+	echo "0 3 1 1 * $CMD >> /etc/nginx/crontab.log 2>&1" | crontab -
 	nginx -g 'daemon off;'
 }
 
@@ -118,8 +118,14 @@ function nginx_prod {
 	create_prod_certs
 	ssl_http_behaviour
 	envsubst_create_config /etc/nginx/openwisp.ssl.template.conf https DOMAIN
-	CMD="certbot --nginx renew && nginx -s reload"
-	echo "0 3 * * 7 ${CMD} &>> /etc/nginx/log/crontab.log" | crontab -
+	if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+		# DNS Challenge
+		CMD="certbot renew && supervisorctl reload"
+	else
+	    # HTTP-01 challenge
+		CMD="certbot --nginx renew && supervisorctl reload"
+	fi
+	echo "0 3 * * 7 ${CMD} >> /etc/nginx/crontab.log 2>&1" | crontab -
 }
 
 function wait_nginx_services {
@@ -162,7 +168,7 @@ function envsubst_create_config {
 			current_server_name="$DOMAIN ${SERVER_DOMAIN}"
 		fi
 		export NGINX_SERVER_NAME="$current_server_name" # Export this variable for the template
-		
+
 		eval export ROOT_DOMAIN=$(python3 get_domain.py)
 		application=$(echo "$application" | tr "[:upper:]" "[:lower:]")
 		envsubst <${1} >/etc/nginx/conf.d/${application}.${2}.conf
