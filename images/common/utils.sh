@@ -110,7 +110,7 @@ function nginx_dev {
 	ssl_http_behaviour
 	create_dev_certs
 	CMD="source /etc/nginx/utils.sh && create_dev_certs && supervisorctl reload"
-	echo "0 3 1 1 * $CMD >> /etc/nginx/crontab.log 2>&1" | crontab -
+	echo "0 3 1 1 * $CMD" | crontab -
 	nginx -g 'daemon off;'
 }
 
@@ -120,12 +120,13 @@ function nginx_prod {
 	envsubst_create_config /etc/nginx/openwisp.ssl.template.conf https DOMAIN
 	if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
 		# DNS Challenge
-		CMD="certbot renew && supervisorctl reload"
+		CMD="certbot renew -n && supervisorctl reload"
 	else
 	    # HTTP-01 challenge
-		CMD="certbot --nginx renew && supervisorctl reload"
+		CMD="certbot --nginx renew -n && supervisorctl reload"
 	fi
-	echo "0 3 * * 7 ${CMD} >> /etc/nginx/crontab.log 2>&1" | crontab -
+	# Every Sunday at 3am
+	echo "0 3 * * 7 ${CMD}" | crontab -
 }
 
 function wait_nginx_services {
