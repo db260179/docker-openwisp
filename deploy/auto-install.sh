@@ -75,7 +75,7 @@ error_msg_with_continue() {
 }
 
 apt_dependenices_setup() {
-	start_step "Setting up dependencies (APT)..."
+	start_step "Setting up dependencies (APT)..."￼
 	sudo apt --yes install python3 python3-pip git python3-dev gawk libffi-dev libssl-dev gcc make curl jq &>>$LOG_FILE
 	check_status $? "Python dependencies installation failed (APT)."
 }
@@ -318,7 +318,7 @@ init_setup() {
 		echo -e "  - Fresh instance"
 		echo -e "  - 8GB RAM (Minimum)"
 		echo -e "  - Supported systems"
-		echo -e "    - Debian: 11 & 12"
+		echo -e "    - Debian: 11, 12 & 13"
 		echo -e "    - Ubuntu 22.04 & 24.04"
 		echo -e "    - Rocky Linux: 8 & 9"
 		echo -e ${YLW}"\nYou can use -u\--upgrade if you are upgrading from an older version.\n"${NON}
@@ -348,7 +348,7 @@ init_setup() {
     case "$system_id" in
         "Debian" | "Ubuntu")
             case "$system_release" in
-                18.04 | 20.04 | 22.04 | 10 | 11 | 12)
+                18.04 | 20.04 | 22.04 | 10 | 11 | 12 | 13)
                     if [[ "$1" == "upgrade" ]]; then
                         report_ok && upgrade_os_specific
                     else
@@ -388,7 +388,7 @@ init_help() {
 	echo -e "  - Fresh instance"
 	echo -e "  - 8GB RAM (Minimum)"
 	echo -e "  - Supported systems"
-	echo -e "    - Debian: 11 & 12"
+	echo -e "    - Debian: 11, 12 & 13"
 	echo -e "    - Ubuntu 22.04 & 24.04"
 	echo -e "    - Rocky Linux: 8 & 9\n"
 	echo -e "  -i\--install : (default) Install OpenWISP"
