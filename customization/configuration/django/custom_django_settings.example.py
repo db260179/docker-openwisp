@@ -22,6 +22,18 @@
 #        },
 #    ),
 #    (
+#        # Comfast CF-E593AX Firmware file
+#        "openwrt-comfast-cfe593ax-squashfs-sysupgrade-v24.10.bin",
+#        {
+#            # Human readable name of the model which is displayed on
+#            # the UI
+#            "label": "COMFAST CF-E593-AX",
+#            # Tuple of board names with which the different versions of
+#            # the hardware are identified on OpenWrt
+#            "boards": ("CF-E593AX","comfast,cf-e593ax","COMFAST CF-E593AX"),
+#        },
+#    ),
+#    (
 #        # Yuncore AX835 Firmware file
 #        "openwrt-yuncore-ax835-squashfs-sysupgrade-v24.10.bin",
 #        {
