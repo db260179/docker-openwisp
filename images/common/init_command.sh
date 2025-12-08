@@ -85,6 +85,7 @@ case "$MODULE_NAME" in
             else
                 envsubst_create_config /etc/nginx/openwisp.template.conf http DOMAIN
             fi
+            crond
             create_program_conf "nginx" "nginx -g 'daemon off;'"
         fi
         ;;
