@@ -3,9 +3,10 @@ FROM alpine:3.23
 WORKDIR /opt/openwisp/
 # hadolint ignore=DL3018
 RUN apk add --no-cache --upgrade \
-            cyrus-sasl	\
-            cyrus-sasl-login \
             openssl \
+            cyrus-sasl \
+            cyrus-sasl-login && \
+    apk add --no-cache \
             postfix \
             rsyslog \
             tzdata && \
