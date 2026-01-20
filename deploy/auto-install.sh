@@ -74,11 +74,8 @@ dnf_dependenices_setup() {
 }
 
 get_version_from_user() {
-	echo -ne ${GRN}"OpenWISP Version (leave blank for latest): "${NON}
+	echo -ne ${GRN}"OpenWISP Version (enter git repo branch): "${NON}
 	read openwisp_version
-	if [[ -z "$openwisp_version" ]]; then
-		openwisp_version=$(curl -L --silent https://api.github.com/repos/openwisp/docker-openwisp/releases/latest | jq -r .tag_name)
-	fi
 }
 
 setup_docker() {

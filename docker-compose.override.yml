@@ -21,6 +21,8 @@ services:
       dockerfile: openwisp_api/Dockerfile
       args:
         API_APP_PORT: 8001
+    depends_on:
+      - dashboard
   websocket:
     image: openwisp-websocket:latest
     restart: always
@@ -29,12 +31,13 @@ services:
       dockerfile: openwisp_websocket/Dockerfile
       args:
         WEBSOCKET_APP_PORT: 8002
+    depends_on:
+      - dashboard
   freeradius:
     image: openwisp-freeradius:latest
     build:
       context: images
       dockerfile: openwisp_freeradius/Dockerfile
-
   postfix:
     image: openwisp-postfix:latest
     build:
