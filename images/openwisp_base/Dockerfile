@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir --user --upgrade pip setuptools wheel
 ARG OPENWISP_MONITORING_SOURCE="openwisp-monitoring~=1.2.0"
 # hadolint ignore=DL3013
 RUN pip install --no-cache-dir --user --upgrade ${OPENWISP_MONITORING_SOURCE}
-ARG OPENWISP_FIRMWARE_SOURCE="openwisp-firmware-upgrader~=1.2.0"
+ARG OPENWISP_FIRMWARE_SOURCE="https://github.com/db260179/openwisp-firmware-upgrader/tarball/1.2"
 # hadolint ignore=DL3013
 RUN pip install --no-cache-dir --user --upgrade ${OPENWISP_FIRMWARE_SOURCE}
 ARG OPENWISP_TOPOLOGY_SOURCE="openwisp-network-topology~=1.2.0"
