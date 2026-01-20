@@ -1,0 +1,6 @@
+services:
+  nginx:
+    image: openwisp-nginx:latest
+    build:
+      context: images
+      dockerfile: openwisp_nginx/Dockerfile
