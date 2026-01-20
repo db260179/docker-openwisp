@@ -5,12 +5,51 @@ x-ulimits: &default-ulimits
       hard: 65536
 
 services:
+  dashboard:
+    image: openwisp-dashboard:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_dashboard/Dockerfile
+      args:
+        DASHBOARD_APP_PORT: 8000
+  api:
+    image: openwisp-api:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_api/Dockerfile
+      args:
+        API_APP_PORT: 8001
+  websocket:
+    image: openwisp-websocket:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_websocket/Dockerfile
+      args:
+        WEBSOCKET_APP_PORT: 8002
+  freeradius:
+    image: openwisp-freeradius:latest
+    build:
+      context: images
+      dockerfile: openwisp_freeradius/Dockerfile
+
+  postfix:
+    image: openwisp-postfix:latest
+    build:
+      context: images
+      dockerfile: openwisp_postfix/Dockerfile
+  openvpn:
+    image: openwisp-openvpn:latest
+    build:
+      context: images
+      dockerfile: openwisp_openvpn/Dockerfile
   nginx:
     image: openwisp-nginx:latest
     build:
       context: images
       dockerfile: openwisp_nginx/Dockerfile
-
   postgres_backup:
     image: prodrigestivill/postgres-backup-local
     restart: always # Ensure the backup container restarts if it crashes
