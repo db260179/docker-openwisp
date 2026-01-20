@@ -95,7 +95,7 @@ services:
       - openwisp_ssh:/home/openwisp/.ssh
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "2048M"
     env_file:
       - .env
@@ -112,7 +112,7 @@ services:
       - openwisp_private_storage:/opt/openwisp/private
       - ./customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
     <<: [ *default-ulimits, *celery-depends-on ]
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "2048M"
     env_file:
       - .env
@@ -234,7 +234,7 @@ services:
       - POSTGRES_PASSWORD=$DB_PASS
       - TZ=$TZ
     <<: *default-ulimits
-    cpus: "2.5"
+    cpus: "3.5"
     mem_limit: "2048M"
     volumes:
       - postgres_data:/var/lib/postgresql/data
