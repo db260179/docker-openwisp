@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "${DEBUG}" = "true" ]; then
+  set -x
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 export BASE_PATH=$HOME/openwisp
 export BACKUPS_PATH=$HOME/openwisp/backups/postgres
