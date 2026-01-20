@@ -165,7 +165,7 @@ services:
 
   freeradius:
     image: openwisp/openwisp-freeradius:latest
-    restart: always
+    restart: unless-stopped
     build:
       context: images
       dockerfile: openwisp_freeradius/Dockerfile
