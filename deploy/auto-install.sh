@@ -1,11 +1,12 @@
 #!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
-export INSTALL_PATH=/opt/openwisp/docker-openwisp
-export LOG_FILE=/opt/openwisp/autoinstall.log
-export ENV_USER=/opt/openwisp/config.env
-export ENV_BACKUP=/opt/openwisp/backup.env
-export GIT_PATH=${GIT_PATH:-https://github.com/openwisp/docker-openwisp.git}
+export BASE_PATH=$HOME/openwisp
+export INSTALL_PATH=$HOME/openwisp/docker-openwisp
+export LOG_FILE=$HOME/autoinstall.log
+export ENV_USER=$HOME/config.env
+export ENV_BACKUP=$HOME/backup.env
+export GIT_PATH=${GIT_PATH:-https://github.com/db260179/docker-openwisp.git}
 
 # Terminal colors
 export RED='\033[1;31m'
@@ -53,9 +54,18 @@ error_msg_with_continue() {
 }
 
 apt_dependenices_setup() {
-	start_step "Setting up dependencies..."
-	apt --yes install python3 python3-pip git python3-dev gawk libffi-dev libssl-dev gcc make curl jq &>>$LOG_FILE
-	check_status $? "Python dependencies installation failed."
+	start_step "Setting up dependencies (APT)..."
+	sudo apt --yes install python3 python3-pip git python3-dev gawk libffi-dev libssl-dev gcc make curl jq &>>$LOG_FILE
+	check_status $? "Python dependencies installation failed (APT)."
+}
+
+# New function for DNF dependencies
+dnf_dependenices_setup() {
+	start_step "Setting up dependencies (DNF)..."
+	# Update system and install EPEL (Extra Packages for Enterprise Linux) for some packages
+	sudo dnf --assumeyes install epel-release &>>$LOG_FILE
+	sudo dnf --assumeyes install python3 python3-pip git python3-devel gawk libffi-devel openssl-devel gcc make curl jq &>>$LOG_FILE
+	check_status $? "Python dependencies installation failed (DNF)."
 }
 
 get_version_from_user() {
@@ -72,8 +82,8 @@ setup_docker() {
 	if [ $? -eq 0 ]; then
 		report_ok
 	else
-		curl -fsSL 'https://get.docker.com' -o '/opt/openwisp/get-docker.sh' &>>$LOG_FILE
-		sh '/opt/openwisp/get-docker.sh' &>>$LOG_FILE
+		curl -fsSL 'https://get.docker.com' -o "$BASE_PATH/get-docker.sh" &>>$LOG_FILE
+		sh "$BASE_PATH/get-docker.sh" &>>$LOG_FILE
 		docker info &>/dev/null
 		check_status $? "Docker installation failed."
 	fi
@@ -213,29 +223,63 @@ give_information_to_user() {
 
 	echo -e ${GRN}"\nYour setup is ready, your dashboard should be available on https://${dashboard_domain} in 2 minutes.\n"
 	echo -e "You can login on the dashboard with"
-	echo -e "    username: admin"
-	echo -e "    password: admin"
+	echo -e "    username: admin"
+	echo -e "    password: admin"
 	echo -e "Please remember to change these credentials.\n"
 	echo -e "Random database user and password generate by the script:"
-	echo -e "    username: ${db_user}"
-	echo -e "    password: ${db_pass}"
+	echo -e "    username: ${db_user}"
+	echo -e "    password: ${db_pass}"
 	echo -e "Please note them, might be helpful for accessing postgresql data in future.\n"${NON}
 }
 
-upgrade_debian() {
-	apt_dependenices_setup
-	upgrade_docker_openwisp
-	dashboard_domain=$(get_env "DASHBOARD_DOMAIN" "$INSTALL_PATH/.env")
-	echo -e ${GRN}"\nYour upgrade was successfully done."
-	echo -e "Your dashboard should be available on https://${dashboard_domain} in 2 minutes.\n"${NON}
+upgrade_os_specific() {
+    # Check if a backup .env file exists from a previous installation
+    if [[ -f "$ENV_BACKUP" ]]; then
+        # Determine the package manager based on the existing .env file or current system
+        if grep -q "DEBIAN_FRONTEND" "$ENV_BACKUP" 2>/dev/null; then
+            apt_dependenices_setup
+        elif grep -q "DOCKER_ENGINE" "$ENV_BACKUP" 2>/dev/null && [ -f "/etc/redhat-release" ]; then
+            # Assuming if DOCKER_ENGINE is present and it's a RedHat system, DNF was used
+            dnf_dependenices_setup
+        else
+            # Fallback if no specific package manager detected from backup, try to detect current system
+            if command -v apt &> /dev/null; then
+                apt_dependenices_setup
+            elif command -v dnf &> /dev/null; then
+                dnf_dependenices_setup
+            else
+                error_msg "Could not determine package manager for upgrade."
+            fi
+        fi
+    else
+        # If no backup, determine based on current system
+        if command -v apt &> /dev/null; then
+            apt_dependenices_setup
+        elif command -v dnf &> /dev/null; then
+            dnf_dependenices_setup
+        else
+            error_msg "Could not determine package manager for upgrade."
+        fi
+    fi
+    upgrade_docker_openwisp
+    dashboard_domain=$(get_env "DASHBOARD_DOMAIN" "$INSTALL_PATH/.env")
+    echo -e ${GRN}"\nYour upgrade was successfully done."
+    echo -e "Your dashboard should be available on https://${dashboard_domain} in 2 minutes.\n"${NON}
 }
 
-install_debian() {
-	apt_dependenices_setup
-	setup_docker
-	setup_docker_openwisp
-	give_information_to_user
+install_os_specific() {
+    if command -v apt &> /dev/null; then
+        apt_dependenices_setup
+    elif command -v dnf &> /dev/null; then
+        dnf_dependenices_setup
+    else
+        error_msg "Unsupported operating system. Only Debian, Ubuntu, and Rocky Linux are supported."
+    fi
+    setup_docker
+    setup_docker_openwisp
+    give_information_to_user
 }
+
 
 init_setup() {
 	if [[ "$1" == "upgrade" ]]; then
@@ -251,57 +295,80 @@ init_setup() {
 		echo -e "  - Supported systems"
 		echo -e "    - Debian: 11, 12 & 13"
 		echo -e "    - Ubuntu 22.04 & 24.04"
+		echo -e "    - Rocky Linux: 8 & 9"
 		echo -e ${YLW}"\nYou can use -u\--upgrade if you are upgrading from an older version.\n"${NON}
 	fi
 
-	if [ "$EUID" -ne 0 ]; then
-		echo -e ${RED}"Please run with root privileges."${NON}
-		exit 1
-	fi
-
-	mkdir -p /opt/openwisp
+	mkdir -p $BASE_PATH
 	echo "" >$LOG_FILE
 
 	start_step "Checking your system capabilities..."
-	apt update &>>$LOG_FILE
-	apt -qq --yes install lsb-release &>>$LOG_FILE
-	system_id=$(lsb_release --id --short)
-	system_release=$(lsb_release --release --short)
-	incompatible_message="$system_id $system_release is not supported. Installation might fail, continue anyway? (Y/n): "
-
-	if [[ "$system_id" == "Debian" || "$system_id" == "Ubuntu" ]]; then
-		case "$system_release" in
-		22.04 | 24.04 | 11 | 12 | 13)
-			if [[ "$1" == "upgrade" ]]; then
-				report_ok && upgrade_debian
-			else
-				report_ok && install_debian
-			fi
-			;;
-		*)
-			error_msg_with_continue "$incompatible_message"
-			install_debian
-			;;
-		esac
+	# Detect OS and use appropriate package manager
+	if command -v lsb_release &>/dev/null; then
+		system_id=$(lsb_release --id --short)
+		system_release=$(lsb_release --release --short)
+	elif [ -f "/etc/os-release" ]; then
+		. /etc/os-release
+		system_id=$ID
+		system_release=$VERSION_ID
 	else
-		error_msg_with_continue "$incompatible_message"
-		install_debian
+		error_msg "Could not determine operating system. Please install lsb-release."
 	fi
+
+	incompatible_message="$system_id $system_release is not support. Installation might fail, continue anyway? (Y/n): "
+
+    # Extract the major version for Rocky Linux
+    rocky_major_release=$(echo "$system_release" | cut -d'.' -f1)
+
+    case "$system_id" in
+        "Debian" | "Ubuntu")
+            case "$system_release" in
+                18.04 | 20.04 | 22.04 | 10 | 11 | 12)
+                    if [[ "$1" == "upgrade" ]]; then
+                        report_ok && upgrade_os_specific
+                    else
+                        report_ok && install_os_specific
+                    fi
+                    ;;
+                *)
+                    error_msg_with_continue "$incompatible_message"
+                    install_os_specific
+                    ;;
+            esac
+            ;;
+        "rocky")
+            # Check for major versions 8 or 9 (and any sub-version)
+            if [[ "$rocky_major_release" == "8" || "$rocky_major_release" == "9" ]]; then
+                if [[ "$1" == "upgrade" ]]; then
+                    report_ok && upgrade_os_specific
+                else
+                    report_ok && install_os_specific
+                fi
+            else
+                error_msg_with_continue "$incompatible_message"
+                install_os_specific
+            fi
+            ;;
+        *)
+            error_msg_with_continue "$incompatible_message"
+            install_os_specific
+            ;;
+    esac
 }
 
 init_help() {
 	echo -e ${GRN}"Welcome to OpenWISP auto-installation script.\n"
 
 	echo -e "Please ensure following requirements:"
-	echo -e "  - Fresh instance"
-	echo -e "  - 2GB RAM (Minimum)"
-	echo -e "  - Root privileges"
-	echo -e "  - Supported systems"
-	echo -e "    - Debian: 11, 12 & 13"
-	echo -e "    - Ubuntu 22.04 & 24.04\n"
-	echo -e "  -i\--install : (default) Install OpenWISP"
-	echo -e "  -u\--upgrade : Change OpenWISP version already setup with this script"
-	echo -e "  -h\--help    : See this help message"
+	echo -e "  - Fresh instance"
+	echo -e "  - 2GB RAM (Minimum)"
+	echo -e "  - Supported systems"
+	echo -e "    - Debian: 11 & 12"
+	echo -e "    - Ubuntu 22.04 & 24.04"
+	echo -e "    - Rocky Linux: 8 & 9\n"
+	echo -e "  -i\--install : (default) Install OpenWISP"
+	echo -e "  -u\--upgrade : Change OpenWISP version already setup with this script"
+	echo -e "  -h\--help    : See this help message"
 	echo -e ${NON}
 }
 
