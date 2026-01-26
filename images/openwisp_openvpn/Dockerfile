@@ -27,6 +27,10 @@ ENV MODULE_NAME=openvpn \
     DB_OPTIONS={} \
     TOPLOGY_UPDATE_INTERVAL=3
 
+# Supervisord
+RUN mkdir -p /etc/supervisor/conf.d
+COPY ./common/supervisord.conf /etc/supervisor/
+
 # hadolint ignore=DL3045
 COPY ./common/init_command.sh \
     ./common/utils.sh \

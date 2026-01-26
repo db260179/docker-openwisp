@@ -2,7 +2,9 @@ FROM nginx:1.29.4-alpine
 
 # hadolint ignore=DL3018
 RUN apk add --update --no-cache \
+            openssl \
             py3-pip \
+            supervisor \
             certbot \
             certbot-nginx \
             openssl && \
@@ -18,6 +20,10 @@ COPY ./common/services.py \
     ./common/utils.sh \
     ./openwisp_nginx/ \
     /etc/nginx/
+
+# Supervisord
+RUN mkdir -p /etc/supervisor/conf.d
+COPY ./common/supervisord.conf /etc/supervisor/
 
 RUN pip install --break-system-packages --no-cache-dir -r requirements.txt
 

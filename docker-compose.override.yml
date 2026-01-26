@@ -1,0 +1,100 @@
+x-ulimits: &default-ulimits
+  ulimits:
+    nofile:
+      soft: 65536
+      hard: 65536
+
+services:
+  dashboard:
+    image: openwisp-dashboard:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_dashboard/Dockerfile
+      args:
+        DASHBOARD_APP_PORT: 8000
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+  api:
+    image: openwisp-api:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_api/Dockerfile
+      args:
+        API_APP_PORT: 8001
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+    depends_on:
+      - dashboard
+  websocket:
+    image: openwisp-websocket:latest
+    restart: always
+    build:
+      context: images
+      dockerfile: openwisp_websocket/Dockerfile
+      args:
+        WEBSOCKET_APP_PORT: 8002
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+    depends_on:
+      - dashboard
+  celery:
+    image: openwisp-dashboard:latest
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+  celery_monitoring:
+    image: openwisp-dashboard:latest
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+  celerybeat:
+    image: openwisp-dashboard:latest
+    volumes:
+      - ../customization/configuration/django/:/opt/openwisp/openwisp/configuration:ro
+  freeradius:
+    image: openwisp-freeradius:latest
+    build:
+      context: images
+      dockerfile: openwisp_freeradius/Dockerfile
+  postfix:
+    image: openwisp-postfix:latest
+    build:
+      context: images
+      dockerfile: openwisp_postfix/Dockerfile
+  openvpn:
+    image: openwisp-openvpn:latest
+    build:
+      context: images
+      dockerfile: openwisp_openvpn/Dockerfile
+  nginx:
+    image: openwisp-nginx:latest
+    build:
+      context: images
+      dockerfile: openwisp_nginx/Dockerfile
+    volumes:
+      - ../customization/theme:/opt/openwisp/public/custom:ro
+  postgres_backup:
+    image: prodrigestivill/postgres-backup-local
+    restart: always # Ensure the backup container restarts if it crashes
+    environment:
+      POSTGRES_HOST: postgres # This MUST match the service name of your PostgreSQL container
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      SCHEDULE: "0 3 * * *" # Example: Run daily at 3 AM. Adjust as needed.
+      BACKUP_KEEP_DAYS: 7    # Keep daily backups for 7 days
+      BACKUP_KEEP_WEEKS: 4   # Keep weekly backups for 4 weeks (1 month)
+      BACKUP_KEEP_MONTHS: 6  # Keep monthly backups for 6 months
+      # Optional: set TZ for backup container to match your system/DB for consistent scheduling
+      TZ: ${TZ} # Uncomment and ensure TZ is defined in your .env or similar
+      # Restore from backup - docker exec --tty --interactive $CONTAINER /bin/sh -c "zcat $BACKUPFILE | psql --username=$POSTGRES_USER --dbname=$POSTGRES_DB -W"
+    <<: *default-ulimits
+    cpus: "2.5"
+    mem_limit: "2048M"
+    volumes:
+      - $HOME/openwisp/backups/postgres:/backups # Create a 'backups/postgres' folder on your host for backups
+    depends_on:
+      postgres:
+        condition: service_healthy # Ensures the DB is healthy before attempting backup
+                                   # Requires the postgres healthcheck above.
+
