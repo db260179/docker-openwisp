@@ -1,5 +1,20 @@
 import json
 import logging
+from compress_staticfiles.storage import CompressStaticFilesStorage
+
+# 1. Capture the original minification function
+original_minify_css = CompressStaticFilesStorage._minify_css
+
+# 2. Define a wrapper that skips drf-yasg
+def patched_minify_css(self, path):
+    if 'drf-yasg' in path or 'swagger' in path:
+        logging.info(f"Skipping minification for problematic file: {path}")
+        with self.open(path) as f:
+            return f.read().decode('utf-8')
+    return original_minify_css(self, path)
+
+# 3. Forcefully replace the library's method globally
+CompressStaticFilesStorage._minify_css = patched_minify_css
 import os
 import sys
 from urllib.parse import quote
