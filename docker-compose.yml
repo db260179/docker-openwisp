@@ -196,7 +196,7 @@ services:
 
   openvpn:
     image: openwisp/openwisp-openvpn:latest
-    restart: on-failure
+    restart: always
     build:
       context: images
       dockerfile: openwisp_openvpn/Dockerfile
