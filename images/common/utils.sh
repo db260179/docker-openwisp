@@ -49,8 +49,7 @@ EOF
 				--non-interactive --agree-tos \
 				--rsa-key-size 4096 \
 				--domain ${DASHBOARD_DOMAIN} \
-				--domain ${SERVER_DOMAIN} \
-				--email ${CERT_ADMIN_EMAIL}
+				--domain ${SERVER_DOMAIN}
 		fi
 
 		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
@@ -59,8 +58,7 @@ EOF
 				--dns-cloudflare-propagation-seconds 60 \
 				--non-interactive --agree-tos \
 				--rsa-key-size 4096 \
-				--domain ${API_DOMAIN} \
-				--email ${CERT_ADMIN_EMAIL}
+				--domain ${API_DOMAIN}
 		fi
 
     else
@@ -71,16 +69,14 @@ EOF
 				--non-interactive --agree-tos \
 				--rsa-key-size 4096 \
 				--domain ${DASHBOARD_DOMAIN} \
-				--domain ${SERVER_DOMAIN} \
-				--email ${CERT_ADMIN_EMAIL}
+				--domain ${SERVER_DOMAIN}
 		fi
 
 		if [ ! -f /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem ]; then
 			certbot certonly --standalone \
 				--non-interactive --agree-tos \
 				--rsa-key-size 4096 \
-				--domain ${API_DOMAIN} \
-				--email ${CERT_ADMIN_EMAIL}
+				--domain ${API_DOMAIN}
 		fi
 	fi
 }

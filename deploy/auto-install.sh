@@ -194,11 +194,11 @@ setup_docker_openwisp() {
 		python3 $INSTALL_PATH/build.py change-secret-key >/dev/null
 		python3 $INSTALL_PATH/build.py change-database-credentials >/dev/null
 		# SSL Configuration
-		set_env "CERT_ADMIN_EMAIL" "$letsencrypt_email"
-		if [[ -z "$letsencrypt_email" ]]; then
-			set_env "SSL_CERT_MODE" "SelfSigned"
-		else
+		use_letsencrypt_lower=$(echo "$use_letsencrypt" | tr '[:upper:]' '[:lower:]')
+		if [[ "$use_letsencrypt_lower" == "y" || "$use_letsencrypt_lower" == "yes" ]]; then
 			set_env "SSL_CERT_MODE" "Yes"
+		else
+			set_env "SSL_CERT_MODE" "SelfSigned"
 		fi
 		# Set Cloudflare token if provided
 		if [[ -n "$cloudflare_api_token" ]]; then
