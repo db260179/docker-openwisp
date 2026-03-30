@@ -2,6 +2,11 @@
 # the heading "Makefile Options".
 
 OPENWISP_VERSION = stable-master
+# The .env file can override ?= variables in the Makefile (e.g. OPENWISP_VERSION, IMAGE_OWNER)
+include .env
+
+# RELEASE_VERSION: version string used when tagging a new release.
+RELEASE_VERSION = 25.10.0
 SHELL := /bin/bash
 .SILENT: clean clean-vol pull start stop
 
