@@ -58,10 +58,10 @@ check_folders_paths() {
 	fi
 # Returns true if the backup .env exists and contains app secrets
 has_backup_with_secrets() {
-	[[ -f "$ENV_BACKUP" ]] && \
-	[[ -n "$(get_env "DB_USER" "$ENV_BACKUP")" ]] && \
-	[[ -n "$(get_env "DB_PASS" "$ENV_BACKUP")" ]] && \
-	[[ -n "$(get_env "DJANGO_SECRET_KEY" "$ENV_BACKUP")" ]]
+	[[ -f "$ENV_BACKUP" ]] &&
+		[[ -n "$(get_env "DB_USER" "$ENV_BACKUP")" ]] &&
+		[[ -n "$(get_env "DB_PASS" "$ENV_BACKUP")" ]] &&
+		[[ -n "$(get_env "DJANGO_SECRET_KEY" "$ENV_BACKUP")" ]]
 }
 
 error_msg() {

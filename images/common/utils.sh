@@ -1,10 +1,10 @@
 #!/bin/sh
 
-function init_conf {
+init_conf() {
 	default_psql_vars
 }
 
-function default_psql_vars {
+default_psql_vars() {
 	# Set database variable values in default PG
 	# vars to use psql command without passing additional
 	# arguments.
@@ -19,7 +19,7 @@ function default_psql_vars {
 	export PGSSLROOTCERT=$DB_SSLROOTCERT
 }
 
-function start_uwsgi {
+start_uwsgi() {
 	# If a user supplies custom uWSGI configuration, then
 	# due to lack of write permissions this command will fail.
 	# Hence, OR (||) operator is used here to continue execution
@@ -28,7 +28,7 @@ function start_uwsgi {
 	uwsgi --ini uwsgi.ini
 }
 
-function create_prod_certs {
+create_prod_certs() {
 	if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
 		echo "Using DNS-01 challenge via Cloudflare..."
 
@@ -81,7 +81,7 @@ EOF
 	fi
 }
 
-function create_dev_certs {
+create_dev_certs() {
 	# Ensure required directories exist
 	mkdir -p "/etc/letsencrypt/live/${DASHBOARD_DOMAIN}/" \
 			"/etc/letsencrypt/live/${API_DOMAIN}/"
@@ -101,7 +101,7 @@ function create_dev_certs {
 	fi
 }
 
-function nginx_dev {
+nginx_dev() {
 	envsubst_create_config /etc/nginx/openwisp.ssl.template.conf https DOMAIN
 	ssl_http_behaviour
 	create_dev_certs
@@ -110,7 +110,7 @@ function nginx_dev {
 	nginx -g 'daemon off;'
 }
 
-function nginx_prod {
+nginx_prod() {
 	create_prod_certs
 	ssl_http_behaviour
 	envsubst_create_config /etc/nginx/openwisp.ssl.template.conf https DOMAIN
@@ -125,7 +125,7 @@ function nginx_prod {
 	echo "0 3 * * 7 ${CMD}" | crontab -
 }
 
-function wait_nginx_services {
+wait_nginx_services() {
 	# Wait for nginx to start up and then check
 	# if the openwisp-dashboard is reachable.
 	echo "Waiting for dashboard to become available..."
@@ -144,15 +144,15 @@ function wait_nginx_services {
 	set -e # Restore previous error setting.
 }
 
-function ssl_http_behaviour {
-	if [ "$NGINX_HTTP_ALLOW" == "True" ]; then
+ssl_http_behaviour() {
+	if [ "$NGINX_HTTP_ALLOW" = "True" ]; then
 		envsubst_create_config /etc/nginx/openwisp.template.conf http DOMAIN
 	else
 		envsubst </etc/nginx/openwisp.ssl.80.template.conf >/etc/nginx/conf.d/openwisp.http.conf
 	fi
 }
 
-function envsubst_create_config {
+envsubst_create_config() {
 	# Creates nginx configurations files for dashboard
 	# and api instances.
 	for application in DASHBOARD API; do
@@ -172,7 +172,7 @@ function envsubst_create_config {
 	done
 }
 
-function postfix_config {
+postfix_config() {
 	# This function is used to configure the
 	# postfix instance.
 
@@ -258,7 +258,7 @@ get_redis_value() {
 	echo -en "GET $key\r\n" | nc redis 6379 | awk 'NR==2 {gsub(/\r/, ""); print}'
 }
 
-function openvpn_preconfig {
+openvpn_preconfig() {
 	mkdir -p /dev/net
 	if [ ! -c /dev/net/tun ]; then
 		mknod /dev/net/tun c 10 200
@@ -272,7 +272,7 @@ function openvpn_preconfig {
 	fi
 }
 
-function openvpn_config {
+openvpn_config() {
 	# Fectch UUID and Key of the default VPN only if they
 	# are not already set. The user may override the UUID and Key
 	# by setting them in the environment variables to use deploy
@@ -284,28 +284,29 @@ function openvpn_config {
 	fi
 }
 
-function openvpn_config_checksum {
-	export OFILE=$(curl --silent --insecure \
-		${API_INTERNAL}/controller/vpn/checksum/$UUID/?key=$KEY)
-	export NFILE=$(cat checksum)
+openvpn_config_checksum() {
+	OFILE=$(curl --silent --insecure \
+		"${API_INTERNAL}/controller/vpn/checksum/${UUID}/?key=${KEY}")
+	export OFILE
+	NFILE=$(cat checksum)
+	export NFILE
 }
 
-function openvpn_config_download {
-	curl --silent --retry 10 --retry-delay 5 --retry-max-time 300\
-		--insecure --output vpn.tar.gz \
-		${API_INTERNAL}/controller/vpn/download-config/$UUID/?key=$KEY
+openvpn_config_download() {
+	curl --silent --retry 10 --retry-delay 5 --retry-max-time 300 --insecure --output vpn.tar.gz \
+		"${API_INTERNAL}/controller/vpn/download-config/${UUID}/?key=${KEY}"
 	curl --silent --insecure --output checksum \
-		${API_INTERNAL}/controller/vpn/checksum/$UUID/?key=$KEY
+		"${API_INTERNAL}/controller/vpn/checksum/${UUID}/?key=${KEY}"
 	tar xzf vpn.tar.gz
-	chmod 600 *.pem
+	chmod 600 ./*.pem
 }
 
-function crl_download {
+crl_download() {
 	curl --silent --insecure --output revoked.crl \
-	${DASHBOARD_INTERNAL}/admin/pki/ca/x509/ca/${CA_UUID}.crl
+		"${DASHBOARD_INTERNAL}/admin/pki/ca/x509/ca/${CA_UUID}.crl"
 }
 
-function init_send_network_topology {
+init_send_network_topology() {
 	if [ -z "$TOPOLOGY_UUID" ]; then
 		export TOPOLOGY_UUID=$(get_redis_value "default_openvpn_topology_uuid")
 		export TOPOLOGY_KEY=$(get_redis_value "default_openvpn_topology_key")
