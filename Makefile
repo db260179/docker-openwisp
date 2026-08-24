@@ -12,7 +12,7 @@ SHELL := /bin/bash
 
 default: compose-build
 
-USER = registry.gitlab.com/openwisp/docker-openwisp
+USER = docker.io/openwisp
 TAG = edge
 SKIP_PULL ?= false
 SKIP_BUILD ?= false
@@ -24,8 +24,13 @@ pull:
 	for image in 'openwisp-base' 'openwisp-nfs' 'openwisp-api' 'openwisp-dashboard' \
 				 'openwisp-freeradius' 'openwisp-nginx' 'openwisp-openvpn' 'openwisp-postfix' \
 				 'openwisp-websocket' ; do \
+<<<<<<< HEAD
 		docker pull --quiet $(USER)/$${image}:$(TAG); \
 		docker tag  $(USER)/$${image}:$(TAG) openwisp/$${image}:latest; \
+=======
+		docker pull --quiet $(USER)/$${image}:$(OPENWISP_VERSION) || exit 1; \
+		docker tag $(USER)/$${image}:$(OPENWISP_VERSION) $(IMAGE_OWNER)/$${image}:$(OPENWISP_VERSION) || exit 1; \
+>>>>>>> aa644b2 ([fix] Fixed Docker Hub image pulls #669)
 	done
 
 # Build
